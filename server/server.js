@@ -17,7 +17,7 @@ app.use(clerkMiddleware())
 app.use("/api/clerk",clerkWebhooks)
 
 app.get('/',(req,res)=>{
-    "API is working"
+    res.send("api is working")
 })
 connectDB()
 
