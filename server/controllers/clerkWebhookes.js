@@ -3,59 +3,59 @@ const { Webhook } = require("svix");
 
 const clerkWebhooks = async (req, res) => {
     try {
-        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
-        console.log("Clerk webhook received");
 
-        // Get headers from request
-        const headers = {
+        // Create a Svix instance with clerk webhook secret.
+        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+
+        // Verifying Headers
+        await whook.verify(JSON.stringify(req.body), {
             "svix-id": req.headers["svix-id"],
             "svix-timestamp": req.headers["svix-timestamp"],
-            "svix-signature": req.headers["svix-signature"],
-        };
+            "svix-signature": req.headers["svix-signature"]
+        })
 
-        // Verify the webhook
-        await whook.verify(JSON.stringify(req.body), headers);
+        // Getting Data from request body
+        const { data, type } = req.body
 
-        const { data, type } = req.body;
-        const userData = {
-            _id: data.id,
-            email: data.email_addresses?.[0]?.email_address || "",
-            username: data.first_name + " " + data.last_name,
-            image: data.image_url,
-        };
-
+        // Switch Cases for differernt Events
         switch (type) {
-            case "user.created": {
-                await User.create(userData);
+            case 'user.created': {
+
+                const userData = {
+                    _id: data.id,
+                    email: data.email_addresses[0].email_address,
+                    username: data.first_name + " " + data.last_name,
+                    image: data.image_url,
+                    
+                }
+                await User.create(userData)
+                res.json({})
                 break;
             }
 
-            case "user.updated": {
-                await User.findByIdAndUpdate(data.id, userData);
+            case 'user.updated': {
+                const userData = {
+                    email: data.email_addresses[0].email_address,
+                    username: data.first_name + " " + data.last_name,
+                    image: data.image_url,
+                }
+                await User.findByIdAndUpdate(data.id, userData)
+                res.json({})
                 break;
             }
 
-            case "user.deleted": {
-                await User.findByIdAndDelete(data.id);
+            case 'user.deleted': {
+                await User.findByIdAndDelete(data.id)
+                res.json({})
                 break;
             }
-
             default:
                 break;
         }
 
-        res.json({
-            success: true,
-            message: "Webhook received",
-        });
-
     } catch (error) {
-        console.error(error.message);
-        res.json({
-            success: false,
-            message: error.message,
-        });
+        res.json({ success: false, message: error.message })
     }
-};
+}
 
 module.exports = { clerkWebhooks };
