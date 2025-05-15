@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     recentSearchedCities:[
         {
             type:String,
-            required:false
+            required:true
         }
     ]
 },{timestamps:true}

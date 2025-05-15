@@ -4,6 +4,7 @@ const { Webhook } = require("svix");
 const clerkWebhooks = async (req, res) => {
     try {
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+        console.log("Clerk webhook received");
 
         // Get headers from request
         const headers = {
