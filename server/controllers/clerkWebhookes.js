@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const { Webhook } = require("svix");
+const {  Webhook } = require("svix");
 
 const clerkWebhooks = async (req, res) => {
     try {
@@ -24,9 +24,10 @@ const clerkWebhooks = async (req, res) => {
                 const userData = {
                     _id: data.id,
                     email: data.email_addresses[0].email_address,
-                    username: data.first_name + " " + data.last_name,
+                    name: data.first_name + " " + data.last_name,
                     image: data.image_url,
                     recentSearchedCities:""
+                 
                 }
                 await User.create(userData)
                 res.json({})
@@ -36,9 +37,8 @@ const clerkWebhooks = async (req, res) => {
             case 'user.updated': {
                 const userData = {
                     email: data.email_addresses[0].email_address,
-                    username: data.first_name + " " + data.last_name,
+                    name: data.first_name + " " + data.last_name,
                     image: data.image_url,
-                    recentSearchedCities:""
                 }
                 await User.findByIdAndUpdate(data.id, userData)
                 res.json({})
@@ -58,5 +58,4 @@ const clerkWebhooks = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
-
 module.exports = { clerkWebhooks };

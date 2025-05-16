@@ -5,7 +5,7 @@ const cors = require("cors");
 const connectDB = require("./configs/db");
 const { clerkMiddleware } = require('@clerk/express');
 const { clerkWebhooks } = require("./controllers/clerkWebhookes");
-const bodyParser = require("body-parser");
+
 const app = express()
 app.use(cors());
 
@@ -15,7 +15,7 @@ app.use(clerkMiddleware())
 
 //API to listen clerk webhooks
 
-app.post("/webhooks", bodyParser.raw({ type: "application/json" }), clerkWebhooks);
+app.post('/webhooks', clerkWebhooks)
 
 app.get('/',(req,res)=>{
     res.send("api is working")
