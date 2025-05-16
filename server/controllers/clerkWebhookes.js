@@ -1,61 +1,58 @@
+const { Webhook } = require("svix");
 const User = require("../models/User");
-const {  Webhook } = require("svix");
 
 const clerkWebhooks = async (req, res) => {
     try {
+        const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-        // Create a Svix instance with clerk webhook secret.
-        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
-
-        // Verifying Headers
-        await whook.verify(JSON.stringify(req.body), {
+        const evt = wh.verify(req.rawBody, {
             "svix-id": req.headers["svix-id"],
             "svix-timestamp": req.headers["svix-timestamp"],
             "svix-signature": req.headers["svix-signature"]
-        })
+        });
 
-        // Getting Data from request body
-        const { data, type } = req.body
+        const { data, type } = evt;
 
-        // Switch Cases for differernt Events
         switch (type) {
             case 'user.created': {
-
                 const userData = {
                     _id: data.id,
-                    email: data.email_addresses[0].email_address,
-                    name: data.first_name + " " + data.last_name,
+                    email: data.email_addresses[0]?.email_address || "",
+                    name: `${data.first_name || ""} ${data.last_name || ""}`,
                     image: data.image_url,
-                    recentSearchedCities:""
-                 
-                }
-                await User.create(userData)
-                res.json({})
+                    recentSearchedCities: ""
+                };
+                await User.create(userData);
+                res.status(200).json({});
                 break;
             }
 
             case 'user.updated': {
                 const userData = {
-                    email: data.email_addresses[0].email_address,
-                    name: data.first_name + " " + data.last_name,
+                    email: data.email_addresses[0]?.email_address || "",
+                    name: `${data.first_name || ""} ${data.last_name || ""}`,
                     image: data.image_url,
-                }
-                await User.findByIdAndUpdate(data.id, userData)
-                res.json({})
+                };
+                await User.findByIdAndUpdate(data.id, userData);
+                res.status(200).json({});
                 break;
             }
 
             case 'user.deleted': {
-                await User.findByIdAndDelete(data.id)
-                res.json({})
+                await User.findByIdAndDelete(data.id);
+                res.status(200).json({});
                 break;
             }
+
             default:
+                res.status(200).json({});
                 break;
         }
 
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        console.error("Webhook error:", error);
+        res.status(400).json({ success: false, message: error.message });
     }
-}
+};
+
 module.exports = { clerkWebhooks };
